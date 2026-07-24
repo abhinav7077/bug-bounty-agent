@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Lint-only job, deliberately not installing requirements.txt: ruff is a
+      # standalone static-analysis tool that needs no runtime dependencies to
+      # check syntax/style, and this project's requirements.txt is unusually
+      # heavy (pulls in stray CUDA packages as transitive deps of chromadb/
+      # gradio, despite Ollama inference running on a separate machine) --
+      # installing it just to run a linter would make this job slow and
+      # fragile for no benefit. A fuller CI job (install deps, run an actual
+      # test suite) is a natural next step once tests/ has real pytest
+      # coverage — see docs/DEVELOPMENT_PLAN.md's Phase 9 notes.
+      - run: pip install ruff==0.16.0
+      - run: ruff check .

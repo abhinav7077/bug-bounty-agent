@@ -1,0 +1,49 @@
+[tool.ruff]
+line-length = 120
+exclude = [".venv", "sessions", "reports"]
+
+[tool.ruff.lint]
+# Explicit selection, not ruff's own version-dependent default -- CI must not
+# silently start failing (or silently stop checking something) just because
+# a future ruff upgrade changes what its unconfigured default enables.
+select = [
+    "E4", "E7", "E9",  # pycodestyle correctness subset
+    "F",               # pyflakes (unused imports/vars, undefined names, ...)
+    "UP",              # pyupgrade (modernize syntax, no behavior change)
+    "RUF013",          # implicit Optional (PEP 484) -- real type-hint correctness
+    "FURB167",         # re.I/re.M-style aliases -> re.IGNORECASE/re.MULTILINE
+    "ISC",             # implicit string concatenation -- a real, known Python footgun
+]
+# "I" (import sorting) deliberately NOT enabled: agent/orchestrator.py groups
+# its imports by MEANING (Type 3 "callable skills" vs. Phase 2 "tool
+# wrappers", with explanatory comments for each group), not alphabetically --
+# confirmed live that `ruff check --fix` scrambles that intentional grouping
+# back into alphabetical order and misplaces the section comments. F401
+# (unused imports, part of "F" above) still catches the thing isort-adjacent
+# rules actually protect against -- a genuinely unused import -- without
+# fighting this file's real organizing structure every time someone reruns
+# --fix.
+# Deliberately NOT enabled, each for a specific reason -- not just "too noisy":
+# - BLE001 (blind `except Exception`): this codebase catches broad exceptions
+#   ON PURPOSE in tool wrappers and background pipeline threads specifically so
+#   one tool's failure can't crash the whole HITL graph or silently vanish a
+#   background thread's traceback (see tools/base.py's run_tool() and every
+#   node_execute in agent/*.py) -- flagging this would just be noise against a
+#   deliberate safety pattern, not a real finding.
+# - ASYNC230 (blocking `open()` in an async function): every async function
+#   here runs via `asyncio.run()` per top-level action (tools/base.py's own
+#   documented convention) -- there is no OTHER concurrent task on that event
+#   loop for a blocking open() to starve, so the usual harm this rule guards
+#   against doesn't apply to this project's actual concurrency model.
+# - DTZ005 (naive `datetime.now()`): every persisted timestamp in this project
+#   (Finding.timestamp, session checkpoints) is deliberately naive local time,
+#   an established convention across many files -- switching to
+#   timezone-aware timestamps everywhere is a real behavior/format change to
+#   persisted data, out of scope for a lint pass.
+# - RUF059 (unused unpacked tuple variable, e.g. `stdout, stderr, returncode,
+#   duration_s, error = await run_tool(...)` when a wrapper doesn't use one):
+#   purely cosmetic (prefixing with `_` changes nothing at runtime) but
+#   appears ~35 times across already-verified tool wrappers -- left as known,
+#   accepted style debt rather than hand-editing that many working call sites
+#   in one pass; worth cleaning up incrementally, not blocking CI on today.
+ignore = ["BLE001", "ASYNC230", "DTZ005", "RUF059"]

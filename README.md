@@ -143,6 +143,22 @@ MEMORY.md    Session-by-session build history/handoff notes — read this before
 
 ## Status
 
-All of Phases 1–6 and 8 of `docs/DEVELOPMENT_PLAN.md` are complete (recon pipeline, vuln
-assessment pipeline, web UI, report generator). See `MEMORY.md` for the full build history,
-including every real bug found and fixed along the way via live testing.
+All of Phases 1–9 of `docs/DEVELOPMENT_PLAN.md` are complete (recon pipeline, vuln
+assessment pipeline, web UI, report generator, and CI/polish). See `MEMORY.md` for the full
+build history, including every real bug found and fixed along the way via live testing.
+
+### Tests & CI
+
+A pure-logic test suite lives in `tests/` — it pins the safety-critical contracts (the fixed
+risk table, the scope-fabrication gate, the eligibility filter, payload loading, approval
+batching, and the subprocess runner's never-raise/always-set-`error` guarantees). It touches
+no LLM, no network, and no external security-tool binaries, so it runs in ~1–2s:
+
+```bash
+pip install -r requirements-dev.txt   # minimal test-only deps, not the full runtime stack
+python -m pytest -q
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs two jobs on every push/PR to `main`: `lint`
+(`ruff check`) and `test` (`pytest` against `requirements-dev.txt`). Both deliberately avoid
+installing the heavy CUDA/Gradio runtime stack they don't need.

@@ -1,11 +1,61 @@
 # Project Memory — Bug Bounty Agent
 
-Last updated: 2026-07-24 (session 7, **Phase 8 built** — CVSS 3.1 calculator, report generator,
-Markdown+PDF export, 3 platform templates; Phases 5 and 6 fully complete beforehand in the same
-session).
+Last updated: 2026-10-21 (session 8, **Phase 9 built** — real `tests/` suite + CI `test` job;
+see the session-8 entry below). Previously session 7: Phase 8 (CVSS 3.1 calculator, report
+generator, Markdown+PDF export, 3 platform templates) with Phases 5 and 6 completed the same
+session.
 Read this first in any new session before touching the code — it's the handoff summary. Full
 task-level checklist: [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md). Live version with
 click-to-check progress tracking: https://claude.ai/code/artifact/1bcab525-024f-4bb5-bd8d-f70ea5c0ff20
+
+## Session 8 (2026-10-21) — Phase 9 (CI / Polish): real test suite + CI test job
+
+User asked to "complete Phase 9 now." Done, except the two items only the user can do (below).
+
+**What was built:**
+- **`tests/` is now a real suite — 67 tests, all passing in ~1.3s** (was just an empty
+  `__init__.py`; everything until now had been verified by live/manual runs only). Deliberately
+  scoped to **pure-logic contracts that need no LLM, no network, and no external security-tool
+  binaries**, so the suite is fast and deterministic in CI:
+  - `test_risk.py` — `risk_level_for()` fixed table, unknown → HIGH fail-closed, SQLi tools
+    always HIGH, every table entry is a valid level.
+  - `test_scope_parser.py` — the fabrication gate `looks_like_scope_text()` (rejects a bare
+    one-domain "is X in scope?", passes real marker+2-domain policy text, passes the inline
+    compound-command form from session 2), `parse_scope()` section split / prose-on-one-line /
+    forbidden-wins / payout tiers / VDP detection / excluded categories, and `check_scope`
+    wildcard + unknown → `requires_human_confirm`.
+  - `test_eligibility_filter.py` — low-value auto-reject, demonstrated-impact → human review
+    (never auto-confirm), program-specific exclusion, case-insensitivity, retest-queue
+    append-roundtrip (writes under a `monkeypatch.chdir(tmp_path)` so no real `sessions/`).
+  - `test_payload_loader.py` — every shipped `config/payloads/*.yaml` parses to a non-empty
+    dict (also a YAML smoke test), context-block formatting, missing-type safe path.
+  - `test_hitl_batcher.py` — grouping key is (tool, risk_level), per-group count/targets,
+    missing-key defaults don't crash, `explain_action` line shape.
+  - `test_tool_base.py` — `run_tool()`'s documented never-raise / always-set-`error` contract
+    (success via `echo`, missing-binary, non-zero exit via `false`, timeout via `sleep` with a
+    `duration < 4.0s` assert that it actually stopped early), `_resolve_binary` abs-path +
+    unknown, and `Finding`/`ToolResult` model defaults.
+- **`@tool`-decorated skills are invoked via `.invoke({...})` in tests** (e.g. `check_scope`,
+  `check_eligibility`, `parse_scope_policy`) — a plain call raises `'StructuredTool' object is
+  not callable`. Plain helpers (`parse_scope`, `looks_like_scope_text`, `_domain_matches`,
+  `group_for_batch_approval`) are called directly. Noted here so a future session writing more
+  tests doesn't trip on the same thing.
+- **`.github/workflows/ci.yml`** — added a second job `test` beside the existing `lint` job. It
+  installs `requirements-dev.txt` and runs `python -m pytest -q`. Same philosophy as the
+  lint job's existing comment: it does NOT install the full `requirements.txt` (that pulls the
+  whole CUDA/torch/gradio/chromadb stack, which the pure-logic tests never import).
+- **`requirements-dev.txt`** — minimal test-only deps, versions kept in lockstep with
+  `requirements.txt` (`pydantic==2.13.4`, `pydantic-settings==2.14.2`, `PyYAML==6.0.3`,
+  `langchain-core==1.4.9`) plus `pytest==8.3.5`.
+- **Root `conftest.py`** — puts the repo root on `sys.path` so the `tests/` package imports
+  `agent`/`skills`/`tools` regardless of pytest's invocation dir.
+- **`pyproject.toml`** — added `[tool.pytest.ini_options]` pinning `testpaths = ["tests"]`.
+- **README** — Status now reads "Phases 1–9 complete" + a new "Tests & CI" section.
+- `ruff check .` stays green across the new files (removed one unused `import pytest`).
+
+**Left for the user (can't be done from here):** tag `v0.1.0` on GitHub (a maintainer release
+action), and the full live hunt → report end-to-end run against a real authorized target (needs
+a live Ollama host + the Phase 0 tool binaries + a real in-scope program).
 
 ## Session 7, continued a third time (2026-07-24) — Phase 8 built: CVSS calculator, `skills/report_generator.py`, `config/report_templates.py`
 
@@ -1488,7 +1538,11 @@ plan). Don't "fix" this without checking — `agent/orchestrator.py` already imp
   "Session 7, continued a third time" above.
 - **Phase 7**'s own scope was already mostly delivered by Phase 4 (ChromaDB, resume, dedup) —
   nothing further currently planned there beyond what exists.
-- **Phase 9 (CI / Polish):** not started.
+- **Phase 9 (CI / Polish):** done (session 8) — see the session-8 entry below. Real `tests/`
+  suite (67 tests, pure-logic only), a second CI `test` job, `requirements-dev.txt`, root
+  `conftest.py`, pytest config. The only two Phase 9 items left are maintainer/environment
+  actions this agent can't take: tagging `v0.1.0` and a live end-to-end hunt on a real
+  authorized target.
 
 See "Immediate next steps for whoever picks this up" near the top of this file for the ordered
 next-actions list — kept in one place rather than duplicated here.

@@ -47,3 +47,11 @@ select = [
 #   accepted style debt rather than hand-editing that many working call sites
 #   in one pass; worth cleaning up incrementally, not blocking CI on today.
 ignore = ["BLE001", "ASYNC230", "DTZ005", "RUF059"]
+
+[tool.pytest.ini_options]
+# Keep test discovery explicit so a stray script elsewhere in the tree never
+# gets collected as a test. The suite is pure-logic only (no LLM / network /
+# external binaries) and runs in ~1-2s; see requirements-dev.txt for the
+# minimal dependency set CI installs to run it.
+testpaths = ["tests"]
+python_files = ["test_*.py"]

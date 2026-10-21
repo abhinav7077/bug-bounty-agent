@@ -1,5 +1,18 @@
 # Bug Bounty Agent
 
+> **A local, human-in-the-loop AI bug bounty agent** — automated reconnaissance and a 10-stage
+> vulnerability-assessment pipeline, powered by a local LLM, with every risky action gated behind
+> explicit human approval. Built for authorized bug bounty hunting and penetration testing.
+
+[![CI](https://github.com/abhinav7077/bug-bounty-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/abhinav7077/bug-bounty-agent/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
+[![Built with LangGraph](https://img.shields.io/badge/built%20with-LangGraph-ff6f00.svg)](https://langchain-ai.github.io/langgraph/)
+[![Runs on Ollama](https://img.shields.io/badge/LLM-Ollama%20(local)-000000.svg)](https://ollama.com)
+
+**Keywords:** bug bounty automation · offensive security · reconnaissance · vulnerability scanner ·
+web application security · ethical hacking · local LLM agent · LangGraph · Ollama · CVSS reporting
+
 A local, human-in-the-loop bug bounty hunting agent. It runs entirely on your own machine against
 a local LLM (via [Ollama](https://ollama.com)) — recon, vulnerability assessment, and report
 generation are all automated, but **every active or risky action is gated behind an explicit

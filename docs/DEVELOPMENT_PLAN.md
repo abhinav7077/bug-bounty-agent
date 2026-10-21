@@ -942,3 +942,34 @@ per-stage host caps (`_MAX_HOSTS_PORTS`/`_MAX_HOSTS_CRAWL`/`_MAX_HOSTS_DIRS` etc
 **Goal:** GitHub Actions linting, full README, stable deploy, project ready for ongoing use
 
 **Deliverable:** Tagged v0.1.0 on GitHub. CI passing. Full hunt → report cycle works end-to-end on a real target.
+
+### Checklist
+
+- [x] GitHub Actions `lint` job — `ruff check .` (was the only job originally; kept as-is)
+- [x] GitHub Actions `test` job — installs `requirements-dev.txt` (a minimal test-only
+  dependency set, NOT the full CUDA/Gradio runtime stack) and runs `python -m pytest -q`.
+  Rationale for the split deps lives in the `test` job's own comment in `ci.yml` and in
+  `requirements-dev.txt`'s header.
+- [x] Real pytest coverage in `tests/` (was an empty `__init__.py`). 67 tests covering the
+  pure-logic, safety-critical contracts that don't need the LLM / network / external binaries:
+  - `test_risk.py` — fixed risk table, fail-closed-to-HIGH default, SQLi tools always HIGH
+  - `test_scope_parser.py` — the scope-fabrication gate (`looks_like_scope_text`), in/out-of-scope
+    classification, prose-on-one-line splitting, forbidden-wins, payout-tier + VDP detection,
+    wildcard `check_scope`
+  - `test_eligibility_filter.py` — low-value auto-reject, demonstrated-impact → human review,
+    program-specific exclusions, retest-queue roundtrip
+  - `test_payload_loader.py` — every shipped `config/payloads/*.yaml` parses; missing-type safe path
+  - `test_hitl_batcher.py` — approval grouping key (tool + risk) and the explain-action line
+  - `test_tool_base.py` — `run_tool()`'s never-raise / always-set-`error` contract (success,
+    missing binary, non-zero exit, timeout) against harmless local binaries, plus the
+    `Finding`/`ToolResult` model defaults
+- [x] Root `conftest.py` puts the repo root on `sys.path` so `tests/` import the project
+  packages regardless of where pytest is invoked.
+- [x] `[tool.pytest.ini_options]` in `pyproject.toml` pins test discovery to `tests/`.
+- [x] README updated: Status now reads Phases 1–9 complete, with a "Tests & CI" section
+  documenting how to run the suite and what the two CI jobs do.
+- [ ] Tag `v0.1.0` on GitHub — deferred to the user (a release tag is a maintainer action, not
+  something to cut automatically on their behalf).
+- [ ] Full hunt → report cycle end-to-end on a real *authorized* target — requires a live
+  Ollama host, the Phase 0 tool binaries installed, and a real in-scope program; can only be
+  run by the user in their own environment, not from CI or this agent's sandbox.

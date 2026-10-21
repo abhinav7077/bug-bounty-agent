@@ -1,0 +1,15 @@
+# Minimal dependency set for running the test suite (tests/) in CI.
+#
+# Deliberately NOT the full requirements.txt: that file pins the whole runtime
+# stack (chromadb, gradio, torch and their transitive CUDA/nvidia-* wheels)
+# which is heavy and fragile to install on a CI runner that only needs to
+# import this project's pure-logic modules. The tests here exercise the risk
+# table, scope parser, eligibility filter, payload loader, approval batcher and
+# the subprocess runner's result contract — none of which touch the LLM,
+# ChromaDB or the web UI. Versions below are kept in lockstep with the matching
+# pins in requirements.txt so CI tests the same library behavior the app runs.
+pydantic==2.13.4
+pydantic-settings==2.14.2
+PyYAML==6.0.3
+langchain-core==1.4.9
+pytest==8.3.5
